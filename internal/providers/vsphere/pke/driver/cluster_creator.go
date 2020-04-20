@@ -394,6 +394,8 @@ until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /us
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
+if [ -r /etc/pke.rc ]; then . /etc/pke.rc; fi
+
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
 --pipeline-token="{{ .PipelineToken }}" \
@@ -432,6 +434,8 @@ chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+
+if [ -r /etc/pke.rc ]; then . /etc/pke.rc; fi
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
