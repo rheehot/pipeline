@@ -59,11 +59,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm2"
-	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -259,7 +259,15 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(
+			config.Helm,
+			db,
+			commonSecretStore,
+			helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+			commonLogger,
+		)
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -274,7 +282,6 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		processService := process.NewService(processadapter.NewGormStore(db))
@@ -326,7 +333,7 @@ func main() {
 
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
-				helmService,
+				unifiedHelmReleaser,
 			)
 			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 
@@ -350,7 +357,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
@@ -619,7 +626,7 @@ func main() {
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					logger,
 					orgDomainService,
 					commonSecretStore,
@@ -629,7 +636,7 @@ func main() {
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
@@ -638,7 +645,7 @@ func main() {
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					commonSecretStore,
 					config.Cluster.Vault.Config,
@@ -647,7 +654,7 @@ func main() {
 				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					config.Cluster.Monitoring.Config,
 					logger,
@@ -656,7 +663,7 @@ func main() {
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					endpointManager,
 					config.Cluster.Logging.Config,
@@ -668,7 +675,7 @@ func main() {
 					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
 					clusterService,
 					config.Cluster.Ingress.Config,
-					helmService,
+					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
 			})

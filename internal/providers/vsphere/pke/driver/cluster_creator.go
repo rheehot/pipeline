@@ -37,7 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.4.24"
+const pkeVersion = "0.4.25"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeVspherePKEClusterCreator(
@@ -128,20 +128,21 @@ type Subnet struct {
 
 // VspherePKEClusterCreationParams defines parameters for PKE-on-Vsphere cluster creation
 type VspherePKEClusterCreationParams struct {
-	CreatedBy        uint
-	Name             string
-	NodePools        []NodePool
-	OrganizationID   uint
-	ScaleOptions     pkgCluster.ScaleOptions
-	SecretID         string
-	StorageSecretID  string
-	SSHSecretID      string
-	HTTPProxy        intPKE.HTTPProxy
-	ResourcePoolName string
-	FolderName       string
-	DatastoreName    string
-	Kubernetes       intPKE.Kubernetes
-	ActiveWorkflowID string
+	CreatedBy           uint
+	Name                string
+	NodePools           []NodePool
+	OrganizationID      uint
+	ScaleOptions        pkgCluster.ScaleOptions
+	SecretID            string
+	StorageSecretID     string
+	SSHSecretID         string
+	HTTPProxy           intPKE.HTTPProxy
+	ResourcePoolName    string
+	FolderName          string
+	DatastoreName       string
+	Kubernetes          intPKE.Kubernetes
+	ActiveWorkflowID    string
+	LoadBalancerIPRange string
 }
 
 // Create
@@ -169,21 +170,22 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		}
 	}
 	createParams := pke.CreateParams{
-		Name:             params.Name,
-		OrganizationID:   params.OrganizationID,
-		CreatedBy:        params.CreatedBy,
-		SecretID:         params.SecretID,
-		StorageSecretID:  params.StorageSecretID,
-		SSHSecretID:      params.SSHSecretID,
-		RBAC:             params.Kubernetes.RBAC,
-		OIDC:             params.Kubernetes.OIDC.Enabled,
-		ScaleOptions:     params.ScaleOptions,
-		NodePools:        nodePools,
-		HTTPProxy:        params.HTTPProxy,
-		ResourcePoolName: params.ResourcePoolName,
-		FolderName:       params.FolderName,
-		DatastoreName:    params.DatastoreName,
-		Kubernetes:       params.Kubernetes,
+		Name:                params.Name,
+		OrganizationID:      params.OrganizationID,
+		CreatedBy:           params.CreatedBy,
+		SecretID:            params.SecretID,
+		StorageSecretID:     params.StorageSecretID,
+		SSHSecretID:         params.SSHSecretID,
+		RBAC:                params.Kubernetes.RBAC,
+		OIDC:                params.Kubernetes.OIDC.Enabled,
+		ScaleOptions:        params.ScaleOptions,
+		NodePools:           nodePools,
+		HTTPProxy:           params.HTTPProxy,
+		ResourcePoolName:    params.ResourcePoolName,
+		FolderName:          params.FolderName,
+		DatastoreName:       params.DatastoreName,
+		Kubernetes:          params.Kubernetes,
+		LoadBalancerIPRange: params.LoadBalancerIPRange,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -206,6 +208,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		PipelineExternalURLInsecure: cc.config.PipelineExternalURLInsecure,
 		SingleNodePool:              len(cl.NodePools) == 1,
 		SSHPublicKey:                sshKeyPair.PublicKeyData,
+		LoadBalancerIPRange:         cl.LoadBalancerIPRange,
 	}
 
 	if cl.Kubernetes.OIDC.Enabled {
@@ -419,10 +422,8 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --vsphere-resourcepool="{{ .ResourcePool }}" \
 --vsphere-folder="{{ .Folder }}" \
 --vsphere-username="{{ .Username }}" \
---vsphere-password="{{ .Password }}" ${PKE_EXTRA_ARGS:-}`
-
-/*
-#--lb-range=$lbrange                    */
+--vsphere-password="{{ .Password }}" \
+--lb-range="{{ .LoadBalancerIPRange }}" ${PKE_EXTRA_ARGS:-}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
 {{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}

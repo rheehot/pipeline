@@ -1583,7 +1583,7 @@ paths:
                 - bearerAuth: []
             tags:
                 - organizations
-            summary: Synchronize Github organizations
+            summary: Synchronize organizations
             operationId: SyncOrgs
             responses:
                 200:
@@ -1673,26 +1673,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/User'
-                default:
-                    $ref: '#/components/responses/Error'
-
-        patch:
-            security:
-                - bearerAuth: []
-            tags:
-                - users
-            summary: Update current user's settings
-            operationId: UpdateCurrentUser
-            description: Update current user
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateUserRequest'
-            responses:
-                204:
-                    description: "Modifiying current user's settings succeeded"
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -3982,16 +3962,6 @@ components:
                 "instance_uuid":
                     type: string
 
-        UpdateUserRequest:
-            type: object
-            properties:
-                gitHubToken:
-                    type: string
-                    example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
-                gitLabToken:
-                    type: string
-                    example: "a_tguocsP6vqqHBh8vYQ"
-
         RequestedResources:
             type: object
             properties:
@@ -4370,6 +4340,10 @@ components:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PKEOnVsphereNodePool'
+                        loadBalancerIPRange:
+                            type: string
+                            example: "192.168.23.150-192.168.23.180"
+                            description: "IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)"
 
         PKEOnVsphereNodePool:
             type: object
@@ -4538,9 +4512,6 @@ components:
                 - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
                 -
                     type: object
-                    required:
-                        - instanceType
-                        - image
                     properties:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
@@ -6322,9 +6293,6 @@ components:
                 organizations:
                     type: object
                     example: null
-                gitHubTokenSet:
-                    type: boolean
-                    example: true
 
         SecretTypeResponse:
             type: object
