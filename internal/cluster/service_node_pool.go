@@ -338,3 +338,11 @@ func (s service) nodePoolSupported(cluster Cluster) error {
 		Message: "the node pool API does not support this distribution yet",
 	})
 }
+
+func (s service) ListNodePools(
+	ctx context.Context,
+	clusterID uint,
+) (map[string]NodePool, error) {
+	// empty implementation to aid endpoint generation
+	panic("implement me")
+}

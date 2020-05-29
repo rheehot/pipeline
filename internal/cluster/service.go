@@ -201,6 +201,9 @@ type Service interface {
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error)
+
+	// List NodePools
+	ListNodePools(ctx context.Context, clusterID uint) (map[string]NodePool, error)
 }
 
 // DeleteClusterOptions represents cluster deletion options.
