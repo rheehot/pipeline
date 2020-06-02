@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/secret"
 )
 
 // Service provides an interface to EKS clusters.
@@ -26,6 +27,9 @@ type Service interface {
 	//
 	// This method accepts a partial body representation.
 	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+
+	// List NodePools
+	ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error)
 }
 
 // NodePoolUpdate describes a node pool update request.
@@ -66,11 +70,13 @@ func NewService(
 	genericClusters cluster.Store,
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
+	secretStore secret.Store,
 ) Service {
 	return service{
 		genericClusters: genericClusters,
 		nodePools:       nodePools,
 		nodePoolManager: nodePoolManager,
+		secretStore:     secretStore,
 	}
 }
 
@@ -78,12 +84,16 @@ type service struct {
 	genericClusters cluster.Store
 	nodePools       NodePoolStore
 	nodePoolManager NodePoolManager
+	secretStore     secret.Store
 }
 
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+
+	// List NodePools
+	ListNodePools(ctx context.Context, c cluster.Cluster, st secret.Store) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(
@@ -105,4 +115,22 @@ func (s service) UpdateNodePool(
 	}
 
 	return s.nodePoolManager.UpdateNodePool(ctx, c, nodePoolName, nodePoolUpdate)
+}
+
+// NodePool is the list item object
+type NodePool struct {
+	// empty object for now
+}
+
+func (s service) ListNodePools(
+	ctx context.Context,
+	clusterID uint,
+) ([]NodePool, error) {
+
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return []NodePool{}, err
+	}
+
+	return s.nodePoolManager.ListNodePools(ctx, c, s.secretStore)
 }

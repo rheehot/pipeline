@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/internal/secret"
 )
 
 type nodePoolManager struct {
@@ -93,4 +94,23 @@ func (n nodePoolManager) UpdateNodePool(
 // TODO: this is temporary
 func generateNodePoolStackName(clusterName string, poolName string) string {
 	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
+}
+
+// NodePool is the list item object
+type NodePool struct {
+	// empty object for now
+}
+
+// ListNodePools is for listing node pools from CloudsetFormation and NodePoolLabelSets
+func ListNodePools(
+	ctx context.Context,
+	c cluster.Cluster,
+	st secret.Store,
+) ([]NodePool, error) {
+
+	// Cloudsetformation
+
+	// NodePoolLabelSets
+
+	return []NodePool{}, nil
 }

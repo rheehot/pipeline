@@ -342,7 +342,7 @@ func (s service) nodePoolSupported(cluster Cluster) error {
 func (s service) ListNodePools(
 	ctx context.Context,
 	clusterID uint,
-) (map[string]NodePool, error) {
+) ([]NodePool, error) {
 	// empty implementation to aid endpoint generation
 	panic("implement me")
 }

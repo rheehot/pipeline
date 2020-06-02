@@ -170,7 +170,7 @@ type ListNodePoolsRequest struct {
 
 // ListNodePoolsResponse is a response struct for ListNodePools endpoint.
 type ListNodePoolsResponse struct {
-	R0  map[string]cluster.NodePool
+	R0  []cluster.NodePool
 	Err error
 }
 
