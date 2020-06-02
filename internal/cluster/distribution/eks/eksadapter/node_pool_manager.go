@@ -111,16 +111,13 @@ func (n nodePoolManager) ListNodePools(
 
 	// CloudsetFormation
 	sessionFactory := workflow.NewAWSSessionFactory(st)
-
 	client, err := sessionFactory.New(c.OrganizationID, c.SecretID.String(), c.Location)
 	if err != nil {
 		return nil, err
 	}
 
 	cfClient := cloudformation.New(client)
-
 	describeStacksInput := cloudformation.DescribeStacksInput{}
-
 	stacksOutput, err := cfClient.DescribeStacks(&describeStacksInput)
 	if err != nil {
 		return nil, err
