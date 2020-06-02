@@ -16,6 +16,7 @@ package eksadapter
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -125,7 +126,8 @@ func (n nodePoolManager) ListNodePools(
 
 	var relevantStacks []*cloudformation.Stack
 	for _, stack := range stacksOutput.Stacks {
-		if *stack.StackName == "pipeline-eks-nodepool-"+c.Name {
+		// TODO: clarify this
+		if strings.HasPrefix(*stack.StackName, "pipeline-eks-nodepool-"+c.Name) {
 			relevantStacks = append(relevantStacks, stack)
 		}
 	}
