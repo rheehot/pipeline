@@ -21,10 +21,11 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
-	"github.com/banzaicloud/pipeline/internal/secret"
 )
 
 type nodePoolManager struct {
@@ -105,10 +106,32 @@ type NodePool struct {
 func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
-	st secret.Store,
+	st eks.SecretStore,
 ) ([]eks.NodePool, error) {
 
-	// Cloudsetformation
+	// CloudsetFormation
+	sessionFactory := workflow.NewAWSSessionFactory(st)
+
+	client, err := sessionFactory.New(c.OrganizationID, c.SecretID.String(), c.Location)
+	if err != nil {
+		return nil, err
+	}
+
+	cfClient := cloudformation.New(client)
+
+	describeStacksInput := cloudformation.DescribeStacksInput{}
+
+	stacksOutput, err := cfClient.DescribeStacks(&describeStacksInput)
+	if err != nil {
+		return nil, err
+	}
+
+	var relevantStacks []*cloudformation.Stack
+	for _, stack := range stacksOutput.Stacks {
+		if *stack.StackName == "pipeline-eks-nodepool-"+c.Name {
+			relevantStacks = append(relevantStacks, stack)
+		}
+	}
 
 	// NodePoolLabelSets
 

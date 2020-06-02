@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // Service provides an interface to EKS clusters.
@@ -65,12 +65,20 @@ type NodePoolUpdateDrainOptions struct {
 	PodSelector string `mapstructure:"podSelector"`
 }
 
+type SecretStore interface {
+	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	GetByName(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+	Delete(organizationID uint, secretID string) error
+	Update(organizationID uint, secretID string, request *secret.CreateSecretRequest) error
+}
+
 // NewService returns a new Service instance.
 func NewService(
 	genericClusters cluster.Store,
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
-	secretStore secret.Store,
+	secretStore SecretStore,
 ) Service {
 	return service{
 		genericClusters: genericClusters,
@@ -84,7 +92,7 @@ type service struct {
 	genericClusters cluster.Store
 	nodePools       NodePoolStore
 	nodePoolManager NodePoolManager
-	secretStore     secret.Store
+	secretStore     SecretStore
 }
 
 // NodePoolManager is responsible for managing node pools.
@@ -93,7 +101,7 @@ type NodePoolManager interface {
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// List NodePools
-	ListNodePools(ctx context.Context, c cluster.Cluster, st secret.Store) ([]NodePool, error)
+	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(
