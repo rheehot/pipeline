@@ -102,15 +102,15 @@ type NodePool struct {
 }
 
 // ListNodePools is for listing node pools from CloudsetFormation and NodePoolLabelSets
-func ListNodePools(
+func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
 	st secret.Store,
-) ([]NodePool, error) {
+) ([]eks.NodePool, error) {
 
 	// Cloudsetformation
 
 	// NodePoolLabelSets
 
-	return []NodePool{}, nil
+	return []eks.NodePool{}, nil
 }
