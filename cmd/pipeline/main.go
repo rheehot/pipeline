@@ -836,7 +836,7 @@ func main() {
 								clusterStore,
 								eksadapter.NewNodePoolStore(db),
 								eksadapter.NewNodePoolManager(workflowClient, config.Pipeline.Enterprise),
-								secretStore,
+								secret.Store,
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),
