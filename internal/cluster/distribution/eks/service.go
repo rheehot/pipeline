@@ -79,20 +79,23 @@ func NewService(
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
 	secretStore SecretStore,
+	dynamicClientFactory cluster.DynamicClientFactory,
 ) Service {
 	return service{
-		genericClusters: genericClusters,
-		nodePools:       nodePools,
-		nodePoolManager: nodePoolManager,
-		secretStore:     secretStore,
+		genericClusters:      genericClusters,
+		nodePools:            nodePools,
+		nodePoolManager:      nodePoolManager,
+		secretStore:          secretStore,
+		dynamicClientFactory: dynamicClientFactory,
 	}
 }
 
 type service struct {
-	genericClusters cluster.Store
-	nodePools       NodePoolStore
-	nodePoolManager NodePoolManager
-	secretStore     SecretStore
+	genericClusters      cluster.Store
+	nodePools            NodePoolStore
+	nodePoolManager      NodePoolManager
+	secretStore          SecretStore
+	dynamicClientFactory cluster.DynamicClientFactory
 }
 
 // NodePoolManager is responsible for managing node pools.
@@ -101,7 +104,7 @@ type NodePoolManager interface {
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// List NodePools
-	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore) ([]NodePool, error)
+	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore, dcf cluster.DynamicClientFactory) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(
@@ -140,5 +143,5 @@ func (s service) ListNodePools(
 		return []NodePool{}, err
 	}
 
-	return s.nodePoolManager.ListNodePools(ctx, c, s.secretStore)
+	return s.nodePoolManager.ListNodePools(ctx, c, s.secretStore, s.dynamicClientFactory)
 }

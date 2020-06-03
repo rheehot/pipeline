@@ -16,6 +16,7 @@ package eksadapter
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -27,6 +28,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
 type nodePoolManager struct {
@@ -108,6 +111,7 @@ func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
 	st eks.SecretStore,
+	dcf cluster.DynamicClientFactory,
 ) ([]eks.NodePool, error) {
 
 	// CloudsetFormation
@@ -126,13 +130,25 @@ func (n nodePoolManager) ListNodePools(
 
 	var relevantStacks []*cloudformation.Stack
 	for _, stack := range stacksOutput.Stacks {
-		// TODO: clarify this
+		// TODO: Later a better filtering method will be needed
 		if strings.HasPrefix(*stack.StackName, "pipeline-eks-nodepool-"+c.Name) {
 			relevantStacks = append(relevantStacks, stack)
 		}
 	}
 
 	// NodePoolLabelSets
+	clusterClient, err := dcf.FromClusterID(ctx, c.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	manager := npls.NewManager(clusterClient, global.Config.Cluster.Namespace)
+	sets, err := manager.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(sets)
 
 	return []eks.NodePool{}, nil
 }
