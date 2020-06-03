@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -79,7 +80,7 @@ func NewService(
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
 	secretStore SecretStore,
-	dynamicClientFactory cluster.DynamicClientFactory,
+	dynamicClientFactory kubernetes.DynamicClientFactory,
 ) Service {
 	return service{
 		genericClusters:      genericClusters,
@@ -95,8 +96,10 @@ type service struct {
 	nodePools            NodePoolStore
 	nodePoolManager      NodePoolManager
 	secretStore          SecretStore
-	dynamicClientFactory cluster.DynamicClientFactory
+	dynamicClientFactory kubernetes.DynamicClientFactory
 }
+
+// +testify:mock:testOnly=true
 
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
@@ -104,7 +107,7 @@ type NodePoolManager interface {
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// List NodePools
-	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore, dcf cluster.DynamicClientFactory) ([]NodePool, error)
+	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore, dcf kubernetes.DynamicClientFactory) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(

@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
@@ -111,7 +112,7 @@ func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
 	st eks.SecretStore,
-	dcf cluster.DynamicClientFactory,
+	dcf kubernetes.DynamicClientFactory,
 ) ([]eks.NodePool, error) {
 
 	// CloudsetFormation
@@ -137,18 +138,19 @@ func (n nodePoolManager) ListNodePools(
 	}
 
 	// NodePoolLabelSets
-	clusterClient, err := dcf.FromClusterID(ctx, c.ID)
+	clusterClient, err := dcf.FromSecret(ctx, c.SecretID.String())
 	if err != nil {
 		return nil, err
 	}
 
 	manager := npls.NewManager(clusterClient, global.Config.Cluster.Namespace)
-	sets, err := manager.GetAll()
+	labelSets, err := manager.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(sets)
+	// Temporary usage
+	fmt.Println(labelSets)
 
 	return []eks.NodePool{}, nil
 }
