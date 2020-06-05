@@ -142,7 +142,6 @@ func (s service) ListNodePools(
 	ctx context.Context,
 	clusterID uint,
 ) ([]NodePool, error) {
-
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return []NodePool{}, err

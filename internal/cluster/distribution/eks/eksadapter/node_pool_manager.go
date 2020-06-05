@@ -23,6 +23,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -108,7 +109,6 @@ func (n nodePoolManager) ListNodePools(
 	st eks.SecretStore,
 	dcf kubernetes.DynamicClientFactory,
 ) ([]eks.NodePool, error) {
-
 	// CloudsetFormation
 	sessionFactory := workflow.NewAWSSessionFactory(st)
 	client, err := sessionFactory.New(c.OrganizationID, c.SecretID.String(), c.Location)
