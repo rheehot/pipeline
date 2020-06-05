@@ -133,7 +133,9 @@ func (s service) UpdateNodePool(
 
 // NodePool is the list item object
 type NodePool struct {
-	// empty object for now
+	// TODO: extend this object
+	Name   string            `mapstructure:"name"`
+	Labels map[string]string `mapstructure:"labels"`
 }
 
 func (s service) ListNodePools(

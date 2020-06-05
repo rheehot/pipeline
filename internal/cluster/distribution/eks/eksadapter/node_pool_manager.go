@@ -16,7 +16,6 @@ package eksadapter
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -102,11 +101,6 @@ func generateNodePoolStackName(clusterName string, poolName string) string {
 	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
 }
 
-// NodePool is the list item object
-type NodePool struct {
-	// empty object for now
-}
-
 // ListNodePools is for listing node pools from CloudsetFormation and NodePoolLabelSets
 func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
@@ -137,6 +131,11 @@ func (n nodePoolManager) ListNodePools(
 		}
 	}
 
+	stackMap := map[string]*cloudformation.Stack{}
+	for _, stack := range relevantStacks {
+		stackMap[*stack.StackName] = stack
+	}
+
 	// NodePoolLabelSets
 	clusterClient, err := dcf.FromSecret(ctx, c.SecretID.String())
 	if err != nil {
@@ -149,8 +148,15 @@ func (n nodePoolManager) ListNodePools(
 		return nil, err
 	}
 
-	// Temporary usage
-	fmt.Println(labelSets)
+	// Aggregate NodePoolLabelSets and CloudsetFormation Stacks
+	var nodePools []eks.NodePool
+	for labelSetName, labelSet := range labelSets {
+		nodePool := eks.NodePool{
+			Name:   labelSetName,
+			Labels: labelSet,
+		}
+		nodePools = append(nodePools, nodePool)
+	}
 
-	return []eks.NodePool{}, nil
+	return nodePools, nil
 }
