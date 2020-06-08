@@ -184,9 +184,9 @@ func (n nodePoolManager) ListNodePools(
 			Labels: labelSet,
 			Size:   NodeAutoScalingInitSize,
 			Autoscaling: struct {
-				Enabled bool "mapstructure:\"enabled\""
-				MinSize int  "mapstructure:\"minSize\""
-				MaxSize int  "mapstructure:\"maxSize\""
+				Enabled bool
+				MinSize int
+				MaxSize int
 			}{
 				Enabled: AutoscalingEnabled,
 				MinSize: AutoscalingMinSize,

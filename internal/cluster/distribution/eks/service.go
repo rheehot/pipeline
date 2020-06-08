@@ -106,7 +106,7 @@ type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
-	// List NodePools
+	// ListNodePools lists all node pools in a cluster
 	ListNodePools(ctx context.Context, c cluster.Cluster, st SecretStore, dcf kubernetes.DynamicClientFactory) ([]NodePool, error)
 }
 
@@ -133,20 +133,21 @@ func (s service) UpdateNodePool(
 
 // NodePool is the list item object
 type NodePool struct {
-	Name        string            `mapstructure:"name"`
-	Labels      map[string]string `mapstructure:"labels"`
-	Size        int               `mapstructure:"size"`
+	Name        string
+	Labels      map[string]string
+	Size        int
 	Autoscaling struct {
-		Enabled bool `mapstructure:"enabled"`
-		MinSize int  `mapstructure:"minSize"`
-		MaxSize int  `mapstructure:"maxSize"`
-	} `mapstructure:"autoscaling"`
-	InstanceType  string `mapstructure:"instanceType"`
-	Image         string `mapstructure:"image"`
-	SpotPrice     string `mapstructure:"spotPrice"`
-	NodeGroupName string `mapstructure:"nodeGroupName"`
+		Enabled bool
+		MinSize int
+		MaxSize int
+	}
+	InstanceType  string
+	Image         string
+	SpotPrice     string
+	NodeGroupName string
 }
 
+// ListNodePools lists all node pools in a cluster
 func (s service) ListNodePools(
 	ctx context.Context,
 	clusterID uint,
