@@ -197,6 +197,7 @@ func (n nodePoolManager) ListNodePools(
 			SpotPrice:     parameterMap["NodeSpotPrice"],
 			NodeGroupName: parameterMap["NodeGroupName"],
 		}
+
 		nodePools = append(nodePools, nodePool)
 	}
 
