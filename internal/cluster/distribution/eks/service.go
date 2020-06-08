@@ -134,8 +134,18 @@ func (s service) UpdateNodePool(
 // NodePool is the list item object
 type NodePool struct {
 	// TODO: extend this object
-	Name   string            `mapstructure:"name"`
-	Labels map[string]string `mapstructure:"labels"`
+	Name        string            `mapstructure:"name"`
+	Labels      map[string]string `mapstructure:"labels"`
+	Size        int               `mapstructure:"size"`
+	Autoscaling struct {
+		Enabled bool `mapstructure:"enabled"`
+		MinSize int  `mapstructure:"minSize"`
+		MaxSize int  `mapstructure:"maxSize"`
+	} `mapstructure:"autoscaling"`
+	InstanceType  string `mapstructure:"instanceType"`
+	Image         string `mapstructure:"image"`
+	SpotPrice     string `mapstructure:"spotPrice"`
+	NodeGroupName string `mapstructure:"nodeGroupName"`
 }
 
 func (s service) ListNodePools(

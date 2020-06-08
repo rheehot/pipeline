@@ -16,6 +16,7 @@ package eksadapter
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -151,9 +152,50 @@ func (n nodePoolManager) ListNodePools(
 	// Aggregate NodePoolLabelSets and CloudsetFormation Stacks
 	var nodePools []eks.NodePool
 	for labelSetName, labelSet := range labelSets {
+		stack := stackMap[labelSetName]
+
+		parameterMap := map[string]string{}
+		for _, parameter := range stack.Parameters {
+			parameterMap[*parameter.ParameterKey] = *parameter.ParameterValue
+		}
+
+		AutoscalingEnabled, err := strconv.ParseBool(parameterMap["ClusterAutoscalerEnabled"])
+		if err != nil {
+			return nil, err
+		}
+
+		AutoscalingMinSize, err := strconv.Atoi(parameterMap["NodeAutoScalingGroupMinSize"])
+		if err != nil {
+			return nil, err
+		}
+
+		AutoscalingMaxSize, err := strconv.Atoi(parameterMap["NodeAutoScalingGroupMaxSize"])
+		if err != nil {
+			return nil, err
+		}
+
+		NodeAutoScalingInitSize, err := strconv.Atoi(parameterMap["NodeAutoScalingInitSize"])
+		if err != nil {
+			return nil, err
+		}
+
 		nodePool := eks.NodePool{
 			Name:   labelSetName,
 			Labels: labelSet,
+			Size:   NodeAutoScalingInitSize,
+			Autoscaling: struct {
+				Enabled bool "mapstructure:\"enabled\""
+				MinSize int  "mapstructure:\"minSize\""
+				MaxSize int  "mapstructure:\"maxSize\""
+			}{
+				Enabled: AutoscalingEnabled,
+				MinSize: AutoscalingMinSize,
+				MaxSize: AutoscalingMaxSize,
+			},
+			InstanceType:  parameterMap["NodeInstanceType"],
+			Image:         parameterMap["NodeImageId"],
+			SpotPrice:     parameterMap["NodeSpotPrice"],
+			NodeGroupName: parameterMap["NodeGroupName"],
 		}
 		nodePools = append(nodePools, nodePool)
 	}
