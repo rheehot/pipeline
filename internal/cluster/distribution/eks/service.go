@@ -141,10 +141,9 @@ type NodePool struct {
 		MinSize int
 		MaxSize int
 	}
-	InstanceType  string
-	Image         string
-	SpotPrice     string
-	NodeGroupName string
+	InstanceType string
+	Image        string
+	SpotPrice    string
 }
 
 // ListNodePools lists all node pools in a cluster

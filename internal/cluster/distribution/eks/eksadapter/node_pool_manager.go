@@ -192,10 +192,9 @@ func (n nodePoolManager) ListNodePools(
 				MinSize: AutoscalingMinSize,
 				MaxSize: AutoscalingMaxSize,
 			},
-			InstanceType:  parameterMap["NodeInstanceType"],
-			Image:         parameterMap["NodeImageId"],
-			SpotPrice:     parameterMap["NodeSpotPrice"],
-			NodeGroupName: parameterMap["NodeGroupName"],
+			InstanceType: parameterMap["NodeInstanceType"],
+			Image:        parameterMap["NodeImageId"],
+			SpotPrice:    parameterMap["NodeSpotPrice"],
 		}
 
 		nodePools = append(nodePools, nodePool)
